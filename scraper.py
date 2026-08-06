@@ -5,7 +5,7 @@ Scraper pour les résultats de la compétition World Aquatics WP CroatiaU16W
 Le site expose un fichier JSON statique par journée de compétition, au format :
 https://results.microplustimingservices.com/WorldAquatics/2026/WP/CroatiaU16W/assets/export/WPWC/SCH_DDMMYYYY.JSON
 
-En sortie, on obtient un fichier avec tous les matchs de la compétitions
+En sortie, on obtient un fichier avec tous les matchs de la compétition
 """
 
 
@@ -30,7 +30,7 @@ def fetch_days(d):
 	"""Récupère le JSON d'un jour donné, ou NONE s'il n'y a pas de fichier"""
 	filename = d.strftime("%d%m%Y")
 	url = BASE_URL.format(filename)
-	resp = requests.get(url, headers=HEADERS)
+	resp = requests.get(url, headers=HEADERS, timeout=15)
 	if resp.status_code == 404:
 		return None
 	resp.raise_for_status()
@@ -55,7 +55,15 @@ def parse_days(day_json):
 			"score1": match.get("s1_p"),
 			"score2": match.get("s2_p"),
 			"statut": match.get("sch_st"),
-			"lieu": match.get("v")
+			"lieu": match.get("v"),
+			# Champs nécessaire pour reconstruire l'URL des stats détaillées
+			# (STA_{c0}{c1}{c2}{c3}{c4}{c5}.JSON)
+			"c0" : match.get("c0"),
+			"c1" : match.get("c1"),
+			"c2" : match.get("c2"),
+			"c3" : match.get("c3"),
+			"c4" : match.get("c4"),
+			"c5" : match.get("c5"),
 		})
 	return rows
 
