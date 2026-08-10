@@ -1,0 +1,187 @@
+// Schema detaille - Base de donnees Water Polo Reference
+// Ajouter une table Staff ?
+
+// ---------- Entites stables ----------
+
+Table Equipe {
+  id integer [primary key]
+  code varchar(5) [unique, note: "Code pays/selection, ex: GRE, MEX"]
+  nom_pays varchar(100)
+  categorie varchar(20) [note: "ex: U16, U18, Senior"]
+  genre varchar(10) [note: "Homme / Femme"]
+
+  indexes {
+    (code, categorie, genre) [unique, note: "Une equipe = pays + categorie + genre"]
+  }
+}
+
+Table Joueur {
+  id integer [primary key]
+  code_federation varchar(20) [unique, note: "Champ cg du JSON, identifiant stable inter-competitions"]
+  prenom varchar(100)
+  nom varchar(100)
+  date_naissance date
+  nationalite varchar(5)
+  taille_cm integer
+  poids_kg integer
+  main varchar(1) [note: "R pour droitier, L pour gaucher"]
+}
+
+Table Officiel {
+  id integer [primary key]
+  code_federation varchar(20) [unique]
+  prenom varchar(100)
+  nom varchar(100)
+  nationalite varchar(5)
+}
+
+// ---------- Competitions et engagements ----------
+
+Table Competition {
+  id integer [primary key]
+  nom varchar(150) [note: "ex: World Championship U16W Croatia 2026"]
+  sport_code varchar(10) [note: "Category.Cod, ex: ASF"]
+  lieu varchar(150)
+  date_debut date
+  date_fin date
+  source_slug varchar(100) [note: "ex: CroatiaU16W, utilise pour reconstruire les URLs Microplus"]
+}
+
+Table Engagement {
+  id integer [primary key]
+  id_equipe integer [ref: > Equipe.id]
+  id_competition integer [ref: > Competition.id]
+
+  indexes {
+    (id_equipe, id_competition) [unique]
+  }
+}
+
+Table Phase {
+  id integer [primary key]
+  id_competition integer [ref: > Competition.id]
+  nom varchar(100) [note: "ex: Qualification, Poules principales, Quarterfinal, Final"]
+  ordre integer [note: "Ordre chronologique dans la competition"]
+  raw_code varchar(20) [note: "Round.Cod brut, ex: A01, A06, A08"]
+}
+
+Table Engagement_Phase {
+  id integer [primary key]
+  id_engagement integer [ref: > Engagement.id]
+  id_phase integer [ref: > Phase.id]
+  groupe varchar(10) [note: "Poule au sein de cette phase, ex: A - peut differer d'une phase a l'autre pour la meme equipe"]
+
+  indexes {
+    (id_engagement, id_phase) [unique]
+  }
+}
+
+Table Roster {
+  id integer [primary key]
+  id_joueur integer [ref: > Joueur.id]
+  id_engagement integer [ref: > Engagement.id]
+  numero_maillot integer
+  poste varchar(5) [note: "rc_en: GK, CF, D, W, CB, AR..."]
+
+  indexes {
+    (id_joueur, id_engagement) [unique, note: "Une joueuse ne peut apparaitre qu'une fois dans le meme effectif"]
+  }
+}
+
+// ---------- Matchs ----------
+
+Table Match {
+  id integer [primary key]
+  date date
+  heure_debut time
+  heure_fin time
+  lieu varchar(150)
+  id_phase integer [ref: > Phase.id]
+  raw_code varchar(30) [unique, note: "Concatenation c0+c1+c2+c3+c4+c5, sert a reconstruire l'URL STA_*"]
+  statut varchar(20) [note: "sch_st: FINISHED, SCHEDULED..."]
+  reporte boolean [note: "postponed"]
+  retarde boolean [note: "delayed"]
+  interrompu boolean [note: "interrupted"]
+  raison_incident varchar(200) [note: "reason"]
+  duree_reglementaire varchar(10) [note: "DurTReg"]
+}
+
+Table Match_Officiel {
+  id integer [primary key]
+  id_match integer [ref: > Match.id]
+  id_officiel integer [ref: > Officiel.id]
+  role varchar(30) [note: "arbitre_principal (a), delegue (a_d), officiel_table (a_t)..."]
+}
+
+Table Match_Engagement {
+  id integer [primary key]
+  id_match integer [ref: > Match.id]
+  id_engagement integer [ref: > Engagement.id]
+  cote varchar(10) [note: "'equipe1' ou 'equipe2', pour reconstituer s1/s2 d'origine"]
+  score integer [note: "r1 ou r2 - score final de cette equipe"]
+  possessions integer [note: "pp1 ou pp2 - nombre de possessions"]
+  temps_possession varchar(10) [note: "tpp1 ou tpp2 - temps de possession cumule"]
+  // Stats cumulés ?
+  entraineur_principal varchar(100) [note: "CapoAll, depuis *_del"]
+  entraineur_assistant varchar(100) [note: "All"]
+  raw_team_stats json [note: "Tableau complet s1_t/s2_t + labels s_en, pour le detail non normalise ici"]
+
+  indexes {
+    (id_match, id_engagement) [unique]
+  }
+}
+
+Table Match_Engagement_Periode {
+  id integer [primary key]
+  id_match_engagement integer [ref: > Match_Engagement.id]
+  numero_periode integer [note: "1 a 4, champ q[]"]
+  // Stats par quart temps ?
+  possessions_periode integer [note: "pp1 ou pp2 du quart"]
+  temps_possession_periode varchar(10) [note: "tpp1 ou tpp2 du quart"]
+
+  indexes {
+    (id_match_engagement, numero_periode) [unique]
+  }
+}
+
+// ---------- Apparitions individuelles ----------
+
+Table Apparition {
+  id integer [primary key]
+  id_joueur integer [ref: > Joueur.id]
+  id_match_engagement integer [ref: > Match_Engagement.id]
+  numero_bonnet integer [note: "nn - peut differer du Roster en theorie, on le fige ici pour ce match"]
+  poste varchar(5) [note: "rc_en pour ce match precis"]
+  est_capitaine boolean [note: "cap = (C)"]
+  minutes_jouees varchar(10) [note: "s[0] MIN_, format mm:ss"]
+  tirs_tentes integer [note: "s[1] TOTAL, denominateur"]
+  tirs_reussis integer [note: "s[1] TOTAL, numerateur, i.e nb de but"]
+  pourcentage_tir decimal [note: "s[2] %"]
+  action_shots_tentes integer [note: "s[3] A, denominateur"]
+  action_shots_reussis integer [note: "s[3] A, numerateur"] 
+  tirs_pointes_tentes integer [note: "s[4] C - tirs en pointe, denominateur"]
+  tirs_pointes_reussis integer [note: "s[4] C, numerateur"]
+  tirs_zp_tentes integer [note: "s[5] X - tirs en zone plus, denominateur"]
+  tirs_zp_reussis integer [note: "s[5] X, numerateur"]
+  tirs_6m_tentes integer [note: "s[6] 6M - tirs a 6 metres, denominateur"]
+  tirs_6m_reussis integer [note: "s[6] 6M, numerateur"]
+  penalty_jeu_tentes integer [note: "s[7] PS - penalty dans le jeu, denominateur"]
+  penalty_jeu_reussis integer [note: "s[7] PS, numerateur"]
+  tirs_contre_attaque_tentes integer [note: "s[8] CA, denominateur"]
+  tirs_contre_attaque_reussis integer [note: "s[8] CA, numerateur"]
+  penalty_shootout_tentes integer [note: "s[9] PSO_ - penalty tir au but, denominateur"]
+  penalty_shootout_reussis integer [note: "s[9] PSO_, numerateur"]
+  passes_decisives integer [note: "s[10] AS"]
+  fautes_offensive integer [note: "s[11] TF - contre-faute"]
+  interceptions integer [note: "s[12] ST"]
+  contres integer [note: "s[13] BL_"]
+  sprint_engagement_gagne integer [note: "s[14] SP_, numérateur"]
+  sprint_engagement_total integer [note: "s[15] SP_, dénominateur"]
+  exclusion_center integer [note:"s[16] 18C, exclusion en pointe"]
+  exclusion_field integer [note:"s[17] 18F, exclusion dans le jeu"]
+  double_exclusion integer [note:"s[18] 2EX, exclusion de un joueur de chaque équipe"]
+  penalty_foul [note:"s[19] P, faute donnant un pénalty à l'équipe adverse"]
+  EDA booleen [note: "s[20] EX, exlcut définitivement avec remplacement (S = true)"]
+  EDAP4P booleen [note: s[21] 4EX_]
+  raw_gk_stats json [note: "Si gardien: tableau s_gk[] + labels s_gk_en, sinon null"]
+}
