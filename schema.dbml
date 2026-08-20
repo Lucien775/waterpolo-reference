@@ -1,5 +1,4 @@
 // Schema detaille - Base de donnees Water Polo Reference
-// Ajouter une table Staff ?
 
 // ---------- Entites stables ----------
 
@@ -24,7 +23,7 @@ Table Joueur {
   nationalite varchar(5)
   taille_cm integer
   poids_kg integer
-  main varchar(1) [note: "R pour droitier, L pour gaucher"]
+  main_dominante varchar(1) [note: "m dans TeamRoster - R pour droitier, L pour gaucher"]
 }
 
 Table Officiel {
@@ -33,6 +32,15 @@ Table Officiel {
   prenom varchar(100)
   nom varchar(100)
   nationalite varchar(5)
+}
+
+Table Personnel_Technique {
+  id integer [primary key]
+  code_federation varchar(20) [unique, note: "Cod dans Staf[]"]
+  prenom varchar(100)
+  nom varchar(100)
+  nationalite varchar(5)
+  date_naissance date
 }
 
 // ---------- Competitions et engagements ----------
@@ -80,12 +88,21 @@ Table Roster {
   id integer [primary key]
   id_joueur integer [ref: > Joueur.id]
   id_engagement integer [ref: > Engagement.id]
-  numero_maillot integer
+  numero_bonnet integer
   poste varchar(5) [note: "rc_en: GK, CF, D, W, CB, AR..."]
+  est_capitaine boolean [note: "cap dans TeamRoster - designee pour toute la competition, pas rejouee par match"]
 
   indexes {
     (id_joueur, id_engagement) [unique, note: "Une joueuse ne peut apparaitre qu'une fois dans le meme effectif"]
   }
+}
+
+Table Engagement_Personnel {
+  id integer [primary key]
+  id_engagement integer [ref: > Engagement.id]
+  id_personnel integer [ref: > Personnel_Technique.id]
+  role_code varchar(10) [note: "RuoCod: D01 head coach, D03 assistant coach, D04 medecin, D08 manager, D11 officiel..."]
+  role_label varchar(100) [note: "RuoDescrEng"]
 }
 
 // ---------- Matchs ----------
@@ -121,11 +138,8 @@ Table Match_Engagement {
   score integer [note: "r1 ou r2 - score final de cette equipe"]
   possessions integer [note: "pp1 ou pp2 - nombre de possessions"]
   temps_possession varchar(10) [note: "tpp1 ou tpp2 - temps de possession cumule"]
-  // Stats cumulés ?
-  entraineur_principal varchar(100) [note: "CapoAll, depuis *_del"]
-  entraineur_assistant varchar(100) [note: "All"]
-  raw_team_stats json [note: "Tableau complet s1_t/s2_t + labels s_en, pour le detail non normalise ici"]
-
+  time_out integer [note: "t1 ou t2 nombre de temps morts pris par l'équipe"]
+  
   indexes {
     (id_match, id_engagement) [unique]
   }
@@ -135,9 +149,10 @@ Table Match_Engagement_Periode {
   id integer [primary key]
   id_match_engagement integer [ref: > Match_Engagement.id]
   numero_periode integer [note: "1 a 4, champ q[]"]
-  // Stats par quart temps ?
   possessions_periode integer [note: "pp1 ou pp2 du quart"]
   temps_possession_periode varchar(10) [note: "tpp1 ou tpp2 du quart"]
+  time_out integer [note:"t1 ou t2 du quart"]
+  score integer [note:"r1 ou r2 du quart"]
 
   indexes {
     (id_match_engagement, numero_periode) [unique]
@@ -180,8 +195,8 @@ Table Apparition {
   exclusion_center integer [note:"s[16] 18C, exclusion en pointe"]
   exclusion_field integer [note:"s[17] 18F, exclusion dans le jeu"]
   double_exclusion integer [note:"s[18] 2EX, exclusion de un joueur de chaque équipe"]
-  penalty_foul [note:"s[19] P, faute donnant un pénalty à l'équipe adverse"]
-  EDA booleen [note: "s[20] EX, exlcut définitivement avec remplacement (S = true)"]
-  EDAP4P booleen [note: s[21] 4EX_]
+  penalty_foul integer [note:"s[19] P, faute donnant un pénalty à l'équipe adverse"]
+  EDA boolean [note: "s[20] EX, exlcut définitivement avec remplacement (S = true)"]
+  EDAP4P boolean [note: s[21] 4EX_]
   raw_gk_stats json [note: "Si gardien: tableau s_gk[] + labels s_gk_en, sinon null"]
 }
