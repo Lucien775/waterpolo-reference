@@ -1,5 +1,5 @@
 *.csv
 .venv/
-stats_matchs/
 .env
 *.log
+cache*/
