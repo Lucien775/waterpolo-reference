@@ -22,6 +22,10 @@ def date_range(d1,d2):
 	for n in range((d2-d1).days + 1):
 		yield d1 + timedelta(days=n)
 
+def build_code(row):
+	"""Reconstruit le code STA_* à partir des champs bruts du match."""
+	return f"STA_{row['c0']}{row['c1']}{row['c2']}{row['c3']}{row['c4']}{row['c5']}"
+
 def fetch_json(code):
 	"""
 	Récupère le JSON correspondant au code donné, ou NONE si erreur
@@ -72,6 +76,17 @@ def main():
 			print(f"{code} -> done\n")
 		time.sleep(DELAY)
 
+	# 3. STA_*.JSON
+	for row in rows:
+		code = build_code(row)
+		data = fetch_json(code)
+		if data is not None:
+			filepath = os.path.join(OUTPUT_DIR, f"{code}.json")
+			with open(filepath, "w", encoding="utf-8") as f:
+				json.dump(data, f, ensure_ascii=False, indent=2)
+			print(f"{row['c4']} vs {row['c5']} ({code}) -> OK")
+
+		time.sleep(DELAY)
 
 
 if __name__ == "__main__":
