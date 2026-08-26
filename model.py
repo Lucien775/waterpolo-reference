@@ -134,7 +134,7 @@ class Roster(Base):
 	id_joueur: Mapped[int] = mapped_column(ForeignKey("Joueur.id"))
 	id_engagement: Mapped[int] = mapped_column(ForeignKey("Engagement.id"))
 	numero_bonnet: Mapped[Optional[int]] = mapped_column()
-	poste: Mapped[Optional[str]] = mapped_column(String(5))
+	poste: Mapped[Optional[str]] = mapped_column(String(25))
 	est_capitaine: Mapped[Optional[bool]] = mapped_column()
 
 	joueur: Mapped["Joueur"] = relationship(back_populates="rosters")

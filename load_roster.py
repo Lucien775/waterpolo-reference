@@ -14,13 +14,23 @@ from datetime import datetime, date
 from sqlalchemy.orm import Session
 
 from database import engine
-from model import Competition, Equipe, Engagement, Personnel_Technique, Engagement_Personnel
+from model import Competition, Equipe, Engagement, Personnel_Technique, Engagement_Personnel, Joueur, Roster
 
 def parse_date(value: str) -> "date | None":
 	"""Convertit 'DD/MM/YYYY' en objet date, ou None si vide."""
 	if not value:
 		return None
 	return datetime.strptime(value, "%d/%m/%Y").date()
+
+def parse_int(value: str) -> "int | None":
+    """Convertit une chaine en int, ou None si vide (ex: taille manquante)."""
+    if not value:
+        return None
+    return int(value)
+
+def parse_bool(value: str) -> bool:
+    """Convertit '0'/'1' en bool. Les champs booleens Microplus sont des chaines."""
+    return value == "1"
 
 
 def get_or_create_equipe(session: Session, code: str, nom_pays: str, categorie: str, genre: str)->Equipe:
@@ -54,6 +64,24 @@ def get_or_create_personnel(session: Session, code_federation: str, prenom: str,
 		session.flush()
 	return personnel
 	
+def get_or_create_joueur(session: Session, code_federation: str, prenom: str, nom: str,
+							date_naissance: date, nationalite: str, taille_cm: int, 
+							poids_kg: int, main_dominante: str) -> Joueur:
+	joueur = session.query(Joueur).filter_by(code_federation=code_federation).first()
+	if joueur is None:
+		joueur = Joueur(
+			code_federation=code_federation,
+			prenom=prenom,
+			nom=nom,
+			date_naissance=date_naissance,
+			nationalite=nationalite,
+			taille_cm=taille_cm,
+			poids_kg=poids_kg,
+			main_dominante=main_dominante
+		)
+		session.add(joueur)
+		session.flush()
+	return joueur
 
 
 def load_roster(session: Session, data: dict, competition_id: int, categorie: str, genre: str) -> None:
@@ -88,6 +116,34 @@ def load_roster(session: Session, data: dict, competition_id: int, categorie: st
 					id_personnel=personnel.id, 
 					role_code=staff["RuoCod"],
 					role_label=staff["RuoDescrEng"]
+				))
+				session.flush()
+
+		for player in team_entry["p"]:
+			joueur = get_or_create_joueur(
+				session,
+				code_federation=player["cod"],
+				prenom=player["no"],
+				nom=player["co"],
+				date_naissance=parse_date(player["na"]),
+				nationalite=player["cn"],
+				taille_cm=parse_int(player["h"]),
+				poids_kg=parse_int(player["p"]),
+				main_dominante=player["m"]
+			)
+
+			deja_dans_roster = (
+				session.query(Roster)
+				.filter_by(id_joueur=joueur.id, id_engagement=engagement.id)
+				.first()
+			)
+			if deja_dans_roster is None:
+				session.add(Roster(
+					id_joueur=joueur.id,
+					id_engagement=engagement.id,
+					numero_bonnet=parse_int(player["num"]),
+					poste=player["r_en"],
+					est_capitaine=parse_bool(player["cap"]),
 				))
 				session.flush()
 

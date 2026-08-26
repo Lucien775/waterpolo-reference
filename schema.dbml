@@ -93,7 +93,7 @@ Table Roster {
   id_joueur integer [ref: > Joueur.id]
   id_engagement integer [ref: > Engagement.id]
   numero_bonnet integer
-  poste varchar(5) [note: "rc_en: GK, CF, D, W, CB, AR..."]
+  poste varchar(25) [note: "rc_en: GK, CF, D, W, CB, AR..."]
   est_capitaine boolean [note: "cap dans TeamRoster - designee pour toute la competition, pas rejouee par match"]
 
   indexes {
