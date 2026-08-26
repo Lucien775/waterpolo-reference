@@ -10,11 +10,18 @@ Usage:
 
 import argparse
 import json
-
+from datetime import datetime, date
 from sqlalchemy.orm import Session
 
 from database import engine
-from model import Competition, Equipe, Engagement
+from model import Competition, Equipe, Engagement, Personnel_Technique, Engagement_Personnel
+
+def parse_date(value: str) -> "date | None":
+	"""Convertit 'DD/MM/YYYY' en objet date, ou None si vide."""
+	if not value:
+		return None
+	return datetime.strptime(value, "%d/%m/%Y").date()
+
 
 def get_or_create_equipe(session: Session, code: str, nom_pays: str, categorie: str, genre: str)->Equipe:
 	equipe = session.query(Equipe).filter_by(code=code, categorie=categorie, genre=genre).first()
@@ -32,6 +39,22 @@ def get_or_create_engagement(session: Session, equipe_id: int, competition_id: i
 		session.flush()
 	return engagement
 
+def get_or_create_personnel(session: Session, code_federation: str, prenom: str, nom: str, 
+							nationalite: str, date_naissance: date) -> Personnel_Technique:
+	personnel = session.query(Personnel_Technique).filter_by(code_federation=code_federation).first()
+	if personnel is None:
+		personnel = Personnel_Technique(
+			code_federation=code_federation,
+			prenom=prenom,
+			nom=nom,
+			nationalite=nationalite,
+			date_naissance=date_naissance
+		)
+		session.add(personnel)
+		session.flush()
+	return personnel
+	
+
 
 def load_roster(session: Session, data: dict, competition_id: int, categorie: str, genre: str) -> None:
 	for team_entry in data["n"]:
@@ -43,6 +66,32 @@ def load_roster(session: Session, data: dict, competition_id: int, categorie: st
 			genre=genre,
 		)
 		engagement = get_or_create_engagement(session, equipe.id, competition_id)
+
+		for staff in team_entry["Staf"]:
+			personnel = get_or_create_personnel(
+				session,
+				code_federation=staff["Cod"],
+				prenom=staff["PlaNome"],
+				nom=staff["PlaCogn"],
+				nationalite=staff["PlaNaz"],
+				date_naissance=parse_date(staff["PlaDatNas"])
+			)
+
+			deja_engage = (
+				session.query(Engagement_Personnel)
+				.filter_by(id_engagement=engagement.id, id_personnel=personnel.id)
+				.first()
+			)
+			if deja_engage is None:
+				session.add(Engagement_Personnel(
+					id_engagement=engagement.id,
+					id_personnel=personnel.id, 
+					role_code=staff["RuoCod"],
+					role_label=staff["RuoDescrEng"]
+				))
+				session.flush()
+
+
 	session.commit()
 
 if __name__ == "__main__":
