@@ -3,8 +3,8 @@
 // ---------- Entites stables ----------
 
 Table Equipe {
-  id integer [primary key]
-  code varchar(5) [unique, note: "Code pays/selection, ex: GRE, MEX"]
+  id integer [primary key, increment]
+  code varchar(5) [note: "Code pays/selection, ex: GRE, MEX"]
   nom_pays varchar(100)
   categorie varchar(20) [note: "ex: U16, U18, Senior"]
   genre varchar(10) [note: "Homme / Femme"]
@@ -15,7 +15,7 @@ Table Equipe {
 }
 
 Table Joueur {
-  id integer [primary key]
+  id integer [primary key, increment]
   code_federation varchar(20) [unique, note: "Champ cg du JSON, identifiant stable inter-competitions"]
   prenom varchar(100)
   nom varchar(100)
@@ -27,7 +27,7 @@ Table Joueur {
 }
 
 Table Officiel {
-  id integer [primary key]
+  id integer [primary key, increment]
   code_federation varchar(20) [unique]
   prenom varchar(100)
   nom varchar(100)
@@ -35,7 +35,7 @@ Table Officiel {
 }
 
 Table Personnel_Technique {
-  id integer [primary key]
+  id integer [primary key, increment]
   code_federation varchar(20) [unique, note: "Cod dans Staf[]"]
   prenom varchar(100)
   nom varchar(100)
@@ -46,17 +46,17 @@ Table Personnel_Technique {
 // ---------- Competitions et engagements ----------
 
 Table Competition {
-  id integer [primary key]
+  id integer [primary key, increment]
   nom varchar(150) [note: "ex: World Championship U16W Croatia 2026"]
   sport_code varchar(10) [note: "Category.Cod, ex: ASF"]
   lieu varchar(150)
   date_debut date
   date_fin date
-  source_slug varchar(100) [note: "ex: CroatiaU16W, utilise pour reconstruire les URLs Microplus"]
+  source_slug varchar(100) [unique, note: "ex: CroatiaU16W, utilise pour reconstruire les URLs Microplus"]
 }
 
 Table Engagement {
-  id integer [primary key]
+  id integer [primary key, increment]
   id_equipe integer [ref: > Equipe.id]
   id_competition integer [ref: > Competition.id]
 
@@ -66,15 +66,19 @@ Table Engagement {
 }
 
 Table Phase {
-  id integer [primary key]
+  id integer [primary key, increment]
   id_competition integer [ref: > Competition.id]
   nom varchar(100) [note: "ex: Qualification, Poules principales, Quarterfinal, Final"]
   ordre integer [note: "Ordre chronologique dans la competition"]
   raw_code varchar(20) [note: "Round.Cod brut, ex: A01, A06, A08"]
+
+  indexes {
+    (ordre, id_competition) [unique]
+  }
 }
 
 Table Engagement_Phase {
-  id integer [primary key]
+  id integer [primary key, increment]
   id_engagement integer [ref: > Engagement.id]
   id_phase integer [ref: > Phase.id]
   groupe varchar(10) [note: "Poule au sein de cette phase, ex: A - peut differer d'une phase a l'autre pour la meme equipe"]
@@ -85,7 +89,7 @@ Table Engagement_Phase {
 }
 
 Table Roster {
-  id integer [primary key]
+  id integer [primary key, increment]
   id_joueur integer [ref: > Joueur.id]
   id_engagement integer [ref: > Engagement.id]
   numero_bonnet integer
@@ -98,17 +102,21 @@ Table Roster {
 }
 
 Table Engagement_Personnel {
-  id integer [primary key]
+  id integer [primary key, increment]
   id_engagement integer [ref: > Engagement.id]
   id_personnel integer [ref: > Personnel_Technique.id]
   role_code varchar(10) [note: "RuoCod: D01 head coach, D03 assistant coach, D04 medecin, D08 manager, D11 officiel..."]
   role_label varchar(100) [note: "RuoDescrEng"]
+
+  indexes {
+    (id_personnel, id_engagement) [unique]
+  }
 }
 
 // ---------- Matchs ----------
 
 Table Match {
-  id integer [primary key]
+  id integer [primary key, increment]
   date date
   heure_debut time
   heure_fin time
@@ -124,14 +132,18 @@ Table Match {
 }
 
 Table Match_Officiel {
-  id integer [primary key]
+  id integer [primary key, increment]
   id_match integer [ref: > Match.id]
   id_officiel integer [ref: > Officiel.id]
   role varchar(30) [note: "arbitre_principal (a), delegue (a_d), officiel_table (a_t)..."]
+
+  indexes {
+    (id_officiel, id_match) [unique]
+  }
 }
 
 Table Match_Engagement {
-  id integer [primary key]
+  id integer [primary key, increment]
   id_match integer [ref: > Match.id]
   id_engagement integer [ref: > Engagement.id]
   cote varchar(10) [note: "'equipe1' ou 'equipe2', pour reconstituer s1/s2 d'origine"]
@@ -146,7 +158,7 @@ Table Match_Engagement {
 }
 
 Table Match_Engagement_Periode {
-  id integer [primary key]
+  id integer [primary key, increment]
   id_match_engagement integer [ref: > Match_Engagement.id]
   numero_periode integer [note: "1 a 4, champ q[]"]
   possessions_periode integer [note: "pp1 ou pp2 du quart"]
@@ -162,7 +174,7 @@ Table Match_Engagement_Periode {
 // ---------- Apparitions individuelles ----------
 
 Table Apparition {
-  id integer [primary key]
+  id integer [primary key, increment]
   id_joueur integer [ref: > Joueur.id]
   id_match_engagement integer [ref: > Match_Engagement.id]
   numero_bonnet integer [note: "nn - peut differer du Roster en theorie, on le fige ici pour ce match"]
@@ -199,4 +211,8 @@ Table Apparition {
   EDA boolean [note: "s[19] EX, exlcut définitivement avec remplacement (S = true)"]
   EDAP4P boolean [note: "s[20] 4EX_"]
   raw_gk_stats json [note: "Si gardien: tableau s_gk[] + labels s_gk_en, sinon null"]
+
+  indexes {
+    (id_joueur, id_match_engagement) [unique]
+  }
 }

@@ -13,7 +13,7 @@ class Equipe(Base):
 	__tablename__ = "Equipe"
 
 	id: Mapped[int] = mapped_column(primary_key=True)
-	code: Mapped[str] = mapped_column(String(5), unique=True)
+	code: Mapped[str] = mapped_column(String(5)) 
 	nom_pays: Mapped[Optional[str]] = mapped_column(String(100))
 	categorie: Mapped[Optional[str]] = mapped_column(String(20))
 	genre: Mapped[Optional[str]] = mapped_column(String(10))
@@ -74,7 +74,7 @@ class Competition(Base):
 	lieu: Mapped[Optional[str]] = mapped_column(String(150))
 	date_debut: Mapped[Optional[date]] = mapped_column()
 	date_fin: Mapped[Optional[date]] = mapped_column()
-	source_slug: Mapped[Optional[str]] = mapped_column(String(100))
+	source_slug: Mapped[Optional[str]] = mapped_column(String(100), unique = True)
 
 	engagements: Mapped[list["Engagement"]] = relationship(back_populates="competition")
 	phases: Mapped[list["Phase"]] = relationship(back_populates="competition")
@@ -109,6 +109,8 @@ class Phase(Base):
 	competition: Mapped["Competition"] = relationship(back_populates="phases")
 	engagements_phase: Mapped[list["Engagement_Phase"]] = relationship(back_populates="phase")
 	matchs: Mapped[list["Match"]] = relationship(back_populates="phase")
+
+	__table_args__ = (UniqueConstraint("ordre", "id_competition"),)
 
 
 class Engagement_Phase(Base):
@@ -153,6 +155,8 @@ class Engagement_Personnel(Base):
 	engagement: Mapped["Engagement"] = relationship(back_populates="engagements_personnel")
 	personnel: Mapped["Personnel_Technique"] = relationship(back_populates="engagements_personnel")
 
+	__table_args__ = (UniqueConstraint("id_personnel", "id_engagement"),)
+
 
 class Match(Base):
 	__tablename__ = "Match"
@@ -186,6 +190,8 @@ class Match_Officiel(Base):
 
 	match: Mapped["Match"] = relationship(back_populates="officiels")
 	officiel: Mapped["Officiel"] = relationship(back_populates="matchs_officies")
+
+	__table_args__ = (UniqueConstraint("id_officiel", "id_match"),)
 
 
 class Match_Engagement(Base):
@@ -267,3 +273,5 @@ class Apparition(Base):
 
 	joueur: Mapped["Joueur"] = relationship(back_populates="apparitions")
 	match_engagement: Mapped["Match_Engagement"] = relationship(back_populates="apparitions")
+
+	__table_args__ = (UniqueConstraint("id_joueur", "id_match_engagement"),)

@@ -6,7 +6,7 @@
 
 set -euo pipefail
 
-DBML_FILE="${1:-schema_final.dbml}"
+DBML_FILE="${1:-schema.dbml}"
 OUT_DIR="$(dirname "$DBML_FILE")"
 SQL_FILE="$OUT_DIR/schema.sql"
 ENV_FILE="$OUT_DIR/.env"
