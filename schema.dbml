@@ -149,7 +149,7 @@ Table Match_Engagement {
   cote varchar(10) [note: "'equipe1' ou 'equipe2', pour reconstituer s1/s2 d'origine"]
   score integer [note: "r1 ou r2 - score final de cette equipe"]
   possessions integer [note: "pp1 ou pp2 - nombre de possessions"]
-  temps_possession varchar(10) [note: "tpp1 ou tpp2 - temps de possession cumule"]
+  temps_possessions varchar(10) [note: "tpp1 ou tpp2 - temps de possession cumule"]
   time_out integer [note: "t1 ou t2 nombre de temps morts pris par l'équipe"]
   
   indexes {

@@ -110,7 +110,7 @@ class Phase(Base):
 	engagements_phase: Mapped[list["Engagement_Phase"]] = relationship(back_populates="phase")
 	matchs: Mapped[list["Match"]] = relationship(back_populates="phase")
 
-	__table_args__ = (UniqueConstraint("ordre", "id_competition"),)
+	__table_args__ = (UniqueConstraint("raw_code", "id_competition"),)
 
 
 class Engagement_Phase(Base):
