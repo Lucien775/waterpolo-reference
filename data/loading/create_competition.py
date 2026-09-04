@@ -12,8 +12,8 @@ Usage:
 import argparse
 from datetime import datetime
 from sqlalchemy.orm import Session
-from database import engine
-from model import Competition
+from data.database import engine
+from data.model import Competition
 
 
 def create_competition(session: Session, nom: str, sport_code: str, lieu: str, source_slug: str,

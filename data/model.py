@@ -6,7 +6,7 @@ from typing import Optional
 from sqlalchemy import String, ForeignKey, UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from database import Base
+from data.database import Base
 
 
 class Equipe(Base):

@@ -15,8 +15,8 @@ from datetime import datetime, date, time
 
 from sqlalchemy.orm import Session
 
-from database import engine
-from model import Competition, Equipe, Engagement, Phase, Engagement_Phase, Match, Match_Engagement
+from data.database import engine
+from data.model import Competition, Equipe, Engagement, Phase, Engagement_Phase, Match, Match_Engagement
 
 
 def parse_date(value: str) -> "date | None":

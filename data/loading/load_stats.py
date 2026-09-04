@@ -15,8 +15,8 @@ from datetime import datetime, date, time
 
 from sqlalchemy.orm import Session
 
-from database import engine
-from model import (
+from data.database import engine
+from data.model import (
 	Competition, Equipe, Engagement, Match, Match_Engagement, Match_Engagement_Periode,
 	Officiel, Match_Officiel, Joueur, Apparition,
 )

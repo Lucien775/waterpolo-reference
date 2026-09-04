@@ -13,8 +13,8 @@ import json
 from datetime import datetime, date
 from sqlalchemy.orm import Session
 
-from database import engine
-from model import Competition, Equipe, Engagement, Personnel_Technique, Engagement_Personnel, Joueur, Roster
+from data.database import engine
+from data.model import Competition, Equipe, Engagement, Personnel_Technique, Engagement_Personnel, Joueur, Roster
 
 def parse_date(value: str) -> "date | None":
 	"""Convertit 'DD/MM/YYYY' en objet date, ou None si vide."""
