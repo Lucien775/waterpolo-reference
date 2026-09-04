@@ -128,7 +128,7 @@ Table Match {
   retarde boolean [note: "delayed"]
   interrompu boolean [note: "interrupted"]
   raison_incident varchar(200) [note: "reason"]
-  duree_reglementaire varchar(10) [note: "DurTReg"]
+  duree_reglementaire varchar(50) [note: "DurTReg"]
 }
 
 Table Match_Officiel {
@@ -162,7 +162,7 @@ Table Match_Engagement_Periode {
   id_match_engagement integer [ref: > Match_Engagement.id]
   numero_periode integer [note: "1 a 4, champ q[]"]
   possessions_periode integer [note: "pp1 ou pp2 du quart"]
-  temps_possession_periode varchar(10) [note: "tpp1 ou tpp2 du quart"]
+  temps_possessions_periode varchar(10) [note: "tpp1 ou tpp2 du quart"]
   time_out integer [note:"t1 ou t2 du quart"]
   score integer [note:"r1 ou r2 du quart"]
 
