@@ -6,13 +6,13 @@
 
 set -euo pipefail
 
-DBML_FILE="${1:-schema.dbml}"
+DBML_FILE="${1:-db/schema.dbml}"
 OUT_DIR="$(dirname "$DBML_FILE")"
 SQL_FILE="$OUT_DIR/schema.sql"
-ENV_FILE="$OUT_DIR/.env"
+ENV_FILE=".env"
  
 if [ ! -f "$ENV_FILE" ]; then
-    echo "Erreur: fichier .env introuvable a cote de $DBML_FILE" 
+    echo "Erreur: fichier .env introuvable" 
     exit 1
 fi
  

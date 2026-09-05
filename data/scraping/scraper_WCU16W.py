@@ -13,7 +13,7 @@ from datetime import date, timedelta
 
 BASE_URL = "https://results.microplustimingservices.com/WorldAquatics/2026/WP/CroatiaU16W/assets/export/WPWC/{}.JSON"
 HEADERS = {"User-Agent" : "Mozilla/5.0"}
-OUTPUT_DIR = "cache_WCU16W"
+OUTPUT_DIR = "cache/WCU16W"
 DELAY = 0.3
 DATE_DEBUT = date(2026,7,25)
 DATE_FIN = date(2026,7,31)
