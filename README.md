@@ -86,7 +86,7 @@ waterpolo-reference/
 ├── db/
 │   ├── schema.dbml          # source de verite du schema
 │   └── generate_sql.sh      # regenere le SQL depuis le .dbml
-├── waterpolo/
+├── data/
 │   ├── database.py          # engine SQLAlchemy
 │   ├── models.py            # modeles ORM
 │   ├── scraping/            # recuperation des JSON source
